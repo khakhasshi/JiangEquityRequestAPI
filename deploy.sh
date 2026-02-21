@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
 # ===========================================================
-# Stockmonito 后端 Ubuntu 一键部署脚本
-# 用法: scp -r PythonBackend/ ubuntu@<IP>:~/stockmonito/
-#        ssh ubuntu@<IP> "cd ~/stockmonito && bash deploy.sh"
+# JiangEquityRequestAPI 后端 Ubuntu 一键部署脚本
+# 用法: scp -r PythonBackend/ ubuntu@<IP>:~/JiangEquityRequestAPI/
+#        ssh ubuntu@<IP> "cd ~/JiangEquityRequestAPI && bash deploy.sh"
 # ===========================================================
 set -euo pipefail
 
 INSTALL_DIR="$(cd "$(dirname "$0")" && pwd)"
-SERVICE_NAME="stockmonito"
+SERVICE_NAME="jiang-equity-request-api"
 PYTHON_MIN="3.11"
 
-echo "=== Stockmonito Backend Deploy ==="
+echo "=== JiangEquityRequestAPI Backend Deploy ==="
 echo "Install dir: $INSTALL_DIR"
 
 # 1. 检查 Python
@@ -32,20 +32,28 @@ echo "[pip] Installing requirements..."
 "$INSTALL_DIR/.venv/bin/pip" install -q -r "$INSTALL_DIR/requirements.txt"
 echo "[ok] Dependencies installed"
 
-# 3. 确保 config.py 存在
-if [ ! -f "$INSTALL_DIR/config.py" ]; then
+# 3. 确保 .env 存在
+if [ ! -f "$INSTALL_DIR/.env" ]; then
     echo ""
-    echo "⚠️  config.py not found. Creating template..."
-    cat > "$INSTALL_DIR/config.py" <<'EOF'
-# LongPort API 凭证 — 请填写真实值
-LONGPORT_APP_KEY      = "YOUR_APP_KEY"
-LONGPORT_APP_SECRET   = "YOUR_APP_SECRET"
-LONGPORT_ACCESS_TOKEN = "YOUR_ACCESS_TOKEN"
+    if [ -f "$INSTALL_DIR/.env.example" ]; then
+        cp "$INSTALL_DIR/.env.example" "$INSTALL_DIR/.env"
+        echo "⚠️  .env not found. 已从 .env.example 创建模板。"
+    else
+        cat > "$INSTALL_DIR/.env" <<'EOF'
+# LongPort API 凭证（必填）
+LONGPORT_APP_KEY=YOUR_APP_KEY
+LONGPORT_APP_SECRET=YOUR_APP_SECRET
+LONGPORT_ACCESS_TOKEN=YOUR_ACCESS_TOKEN
 
-SERVER_HOST = "0.0.0.0"   # 监听全部网卡
-SERVER_PORT = 8765
+# 服务配置（可选）
+SERVER_HOST=0.0.0.0
+SERVER_PORT=8765
+PUBLIC_BASE_URL=http://localhost:8765
+CORS_ALLOW_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
 EOF
-    echo "   请编辑 $INSTALL_DIR/config.py 后重新运行此脚本"
+        echo "⚠️  .env not found. 已创建模板。"
+    fi
+    echo "   请编辑 $INSTALL_DIR/.env 后重新运行此脚本"
     exit 1
 fi
 
@@ -56,13 +64,14 @@ SERVICE_FILE="/etc/systemd/system/${SERVICE_NAME}.service"
 echo "[systemd] Installing service..."
 sudo tee "$SERVICE_FILE" > /dev/null <<EOF
 [Unit]
-Description=Stockmonito Quote Backend
+Description=JiangEquityRequestAPI Backend
 After=network.target
 
 [Service]
 Type=simple
 User=$(whoami)
 WorkingDirectory=$INSTALL_DIR
+EnvironmentFile=$INSTALL_DIR/.env
 ExecStart=$PYTHON_BIN $INSTALL_DIR/main.py
 Restart=always
 RestartSec=5

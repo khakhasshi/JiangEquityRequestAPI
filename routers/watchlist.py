@@ -11,7 +11,7 @@ from models import WatchlistAddRequest
 router = APIRouter(prefix="/api/watchlist", tags=["watchlist"])
 
 # 自选股数据存储在用户主目录下
-_WATCHLIST_FILE = Path.home() / ".stockmonito_watchlist.json"
+_WATCHLIST_FILE = Path.home() / ".jiang_equity_request_watchlist.json"
 
 
 def _load() -> list[str]:

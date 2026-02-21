@@ -4,10 +4,12 @@
 - GET /api/market/trading_days     — 指定市场交易日/半交易日列表
 """
 import datetime
+import logging
 
 from fastapi import APIRouter, HTTPException, Query, Request
 
 router = APIRouter(prefix="/api/market", tags=["market"])
+logger = logging.getLogger(__name__)
 
 
 def _quote_service(request: Request):
@@ -37,7 +39,8 @@ async def get_trading_sessions(request: Request):
     try:
         return await svc.get_trading_session()
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.exception("get_trading_sessions failed: %s", e)
+        raise HTTPException(status_code=500, detail="internal server error")
 
 
 @router.get("/trading_days")
@@ -93,4 +96,5 @@ async def get_trading_days(
     try:
         return await svc.get_trading_days(market, begin_date, end_date)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.exception("get_trading_days failed: %s", e)
+        raise HTTPException(status_code=500, detail="internal server error")

@@ -1,4 +1,4 @@
-# databaseAPI
+# JiangEquityRequestAPI
 
 基于 **LongPort OpenAPI** 的股票行情与账户数据后端服务，使用 FastAPI + WebSocket 构建。
 
@@ -22,7 +22,7 @@
 | 基本面 & 估值 | `/api/fundamental`、`/api/static`、`/api/indexes`、`/api/capital` |
 | 账户持仓 | `/api/assets/balance`、`/api/assets/positions`、`/api/assets/fund_positions` |
 | 自选股 | `GET/POST/DELETE /api/watchlist` |
-| 实时推送 | `WS /ws/quotes`（quote / trade / depth / candlestick） |
+| 实时推送 | `WS /ws/quotes`（quote / trades / depth / candlestick） |
 
 完整接口文档见 [API.md](API.md)。
 
@@ -31,8 +31,8 @@
 ### 1. 克隆并安装依赖
 
 ```bash
-git clone <repo-url> databaseAPI
-cd databaseAPI
+git clone <repo-url> JiangEquityRequestAPI
+cd JiangEquityRequestAPI
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
@@ -43,6 +43,8 @@ pip install -r requirements.txt
 ```bash
 cp .env.example .env
 # 编辑 .env，填入 LongPort App Key / Secret / Access Token
+# 可选：配置 PUBLIC_BASE_URL（对外访问地址）
+# 可选：配置 CORS_ALLOW_ORIGINS（逗号分隔）
 ```
 
 ### 3. 启动服务
@@ -52,17 +54,26 @@ python main.py
 # 服务默认监听 http://0.0.0.0:8765
 ```
 
-### 4. 验证
+### 4. 配置请求地址变量（推荐）
 
 ```bash
-curl http://localhost:8765/health
-curl "http://localhost:8765/api/quote/AAPL.US"
+export PUBLIC_BASE_URL=http://localhost:8765
+export WS_BASE_URL=ws://localhost:8765
+```
+
+### 5. 验证
+
+```bash
+curl ${PUBLIC_BASE_URL}/health
+curl "${PUBLIC_BASE_URL}/api/quote/AAPL.US"
+# WebSocket 测试示例
+# wscat -c ${WS_BASE_URL}/ws/quotes
 ```
 
 ## 目录结构
 
 ```
-databaseAPI/
+JiangEquityRequestAPI/
 ├── main.py              # FastAPI 应用入口
 ├── config.py            # 配置（读取环境变量）
 ├── quote_service.py     # 行情服务（WS 订阅 + 查询）
@@ -83,8 +94,8 @@ databaseAPI/
 ## 部署（EC2）
 
 ```bash
-# 服务器上
-cd ~/databaseAPI
+# 服务器上（确保 .env 已配置）
+cd ~/JiangEquityRequestAPI
 git pull origin main
 pkill -f 'python.*main.py'
 nohup .venv/bin/python main.py > /tmp/api.log 2>&1 &

@@ -2,11 +2,14 @@
 行情相关 REST 路由。
 通过 FastAPI dependency 获取 QuoteService 实例（注入自 main.py 的 app.state）。
 """
+import logging
+
 from fastapi import APIRouter, HTTPException, Request
 
 from models import SubscribeRequest
 
 router = APIRouter(prefix="/api", tags=["quotes"])
+logger = logging.getLogger(__name__)
 
 
 def get_quote_service(request: Request):
@@ -26,7 +29,8 @@ async def get_quotes(symbols: str, request: Request):
     try:
         return await svc.get_quotes(symbol_list)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.exception("get_quotes failed: %s", e)
+        raise HTTPException(status_code=500, detail="internal server error")
 
 
 @router.get("/quote/{symbol:path}")
@@ -41,7 +45,8 @@ async def get_quote(symbol: str, request: Request):
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.exception("get_quote failed: %s", e)
+        raise HTTPException(status_code=500, detail="internal server error")
 
 
 @router.get("/candlesticks/{symbol:path}")
@@ -60,7 +65,8 @@ async def get_candlesticks(
     try:
         return await svc.get_candlesticks(symbol, period, count)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.exception("get_candlesticks failed: %s", e)
+        raise HTTPException(status_code=500, detail="internal server error")
 
 
 @router.get("/candlesticks_range/{symbol:path}")
@@ -104,7 +110,8 @@ async def get_candlesticks_range(
     try:
         return await svc.get_candlesticks_by_date(symbol, period, start_dt, end_dt, adjust)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.exception("get_candlesticks_range failed: %s", e)
+        raise HTTPException(status_code=500, detail="internal server error")
 
 
 @router.get("/trades/{symbol:path}")
@@ -122,7 +129,8 @@ async def get_trades(
     try:
         return await svc.get_trades(symbol, count)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.exception("get_trades failed: %s", e)
+        raise HTTPException(status_code=500, detail="internal server error")
 
 
 @router.get("/intraday/{symbol:path}")
@@ -135,7 +143,8 @@ async def get_intraday(symbol: str, request: Request):
     try:
         return await svc.get_intraday(symbol)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.exception("get_intraday failed: %s", e)
+        raise HTTPException(status_code=500, detail="internal server error")
 
 
 @router.get("/depth/{symbol:path}")
@@ -145,7 +154,8 @@ async def get_depth(symbol: str, request: Request):
     try:
         return await svc.get_depth(symbol)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.exception("get_depth failed: %s", e)
+        raise HTTPException(status_code=500, detail="internal server error")
 
 
 @router.post("/subscribe")
@@ -156,7 +166,8 @@ async def subscribe(body: SubscribeRequest, request: Request):
         await svc.subscribe(body.symbols)
         return {"subscribed": svc.subscribed_symbols}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.exception("subscribe failed: %s", e)
+        raise HTTPException(status_code=500, detail="internal server error")
 
 
 @router.delete("/subscribe/{symbol:path}")
@@ -167,4 +178,5 @@ async def unsubscribe(symbol: str, request: Request):
         await svc.unsubscribe([symbol])
         return {"subscribed": svc.subscribed_symbols}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.exception("unsubscribe failed: %s", e)
+        raise HTTPException(status_code=500, detail="internal server error")

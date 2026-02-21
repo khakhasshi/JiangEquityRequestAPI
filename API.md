@@ -1,8 +1,15 @@
-# JIANGStockDB 后端 API 文档
+# JiangEquityRequestAPI 后端 API 文档
 
-**Base URL**: `http://ec2-16-163-141-166.ap-east-1.compute.amazonaws.com:8765`  
+**Base URL**: 建议通过环境变量配置：`PUBLIC_BASE_URL`（HTTP）与 `WS_BASE_URL`（WebSocket）  
 **协议**: HTTP REST + WebSocket  
 **数据格式**: JSON
+
+推荐在本地 shell 里先设置：
+
+```bash
+export PUBLIC_BASE_URL=http://localhost:8765
+export WS_BASE_URL=ws://localhost:8765
+```
 
 ---
 
@@ -51,7 +58,8 @@
 {
   "status": "ok",
   "subscribed": ["700.HK", "AAPL.US"],
-  "ws_clients": 2
+  "ws_clients": 2,
+  "public_base_url": "http://localhost:8765"
 }
 ```
 
@@ -60,11 +68,12 @@
 | `status` | string | 固定为 `"ok"` |
 | `subscribed` | string[] | 当前已订阅实时推送的标的列表 |
 | `ws_clients` | int | 当前连接的 WebSocket 客户端数量 |
+| `public_base_url` | string | （可选）服务对外地址，配置了 `PUBLIC_BASE_URL` 时返回 |
 
 **示例**
 
 ```bash
-curl http://ec2-16-163-141-166.ap-east-1.compute.amazonaws.com:8765/health
+curl ${PUBLIC_BASE_URL}/health
 ```
 
 ---
@@ -124,7 +133,7 @@ curl http://ec2-16-163-141-166.ap-east-1.compute.amazonaws.com:8765/health
 **示例**
 
 ```bash
-curl "http://ec2-16-163-141-166.ap-east-1.compute.amazonaws.com:8765/api/quotes?symbols=700.HK,AAPL.US,NVDA.US"
+curl "${PUBLIC_BASE_URL}/api/quotes?symbols=700.HK,AAPL.US,NVDA.US"
 ```
 
 ---
@@ -146,7 +155,7 @@ curl "http://ec2-16-163-141-166.ap-east-1.compute.amazonaws.com:8765/api/quotes?
 **示例**
 
 ```bash
-curl "http://ec2-16-163-141-166.ap-east-1.compute.amazonaws.com:8765/api/quote/NVDA.US"
+curl "${PUBLIC_BASE_URL}/api/quote/NVDA.US"
 ```
 
 ---
@@ -223,10 +232,10 @@ curl "http://ec2-16-163-141-166.ap-east-1.compute.amazonaws.com:8765/api/quote/N
 
 ```bash
 # 获取 NVDA 最近 200 根 1 分钟 K 线
-curl "http://ec2-16-163-141-166.ap-east-1.compute.amazonaws.com:8765/api/candlesticks/NVDA.US?period=1min&count=200"
+curl "${PUBLIC_BASE_URL}/api/candlesticks/NVDA.US?period=1min&count=200"
 
 # 获取 700.HK 最近 90 根日 K
-curl "http://ec2-16-163-141-166.ap-east-1.compute.amazonaws.com:8765/api/candlesticks/700.HK?period=day&count=90"
+curl "${PUBLIC_BASE_URL}/api/candlesticks/700.HK?period=day&count=90"
 ```
 
 ---
@@ -274,16 +283,16 @@ curl "http://ec2-16-163-141-166.ap-east-1.compute.amazonaws.com:8765/api/candles
 
 ```bash
 # 获取 AAPL.US 2025 年全年日 K
-curl "http://ec2-16-163-141-166.ap-east-1.compute.amazonaws.com:8765/api/candlesticks_range/AAPL.US?period=day&start=2025-01-01&end=2025-12-31"
+curl "${PUBLIC_BASE_URL}/api/candlesticks_range/AAPL.US?period=day&start=2025-01-01&end=2025-12-31"
 
 # 获取 700.HK 2025-02-03 全天 1 分钟 K
-curl "http://ec2-16-163-141-166.ap-east-1.compute.amazonaws.com:8765/api/candlesticks_range/700.HK?period=1min&start=2025-02-03&end=2025-02-03"
+curl "${PUBLIC_BASE_URL}/api/candlesticks_range/700.HK?period=1min&start=2025-02-03&end=2025-02-03"
 
 # 获取 NVDA.US 2025-02-01 全天 15 分钟 K，前复权（时间部分会被忽略，只传日期即可）
-curl "http://ec2-16-163-141-166.ap-east-1.compute.amazonaws.com:8765/api/candlesticks_range/NVDA.US?period=15min&start=2025-02-01&end=2025-02-07&adjust=forward"
+curl "${PUBLIC_BASE_URL}/api/candlesticks_range/NVDA.US?period=15min&start=2025-02-01&end=2025-02-07&adjust=forward"
 
 # 不传时间范围，取全部日 K
-curl "http://ec2-16-163-141-166.ap-east-1.compute.amazonaws.com:8765/api/candlesticks_range/SPY.US?period=week"
+curl "${PUBLIC_BASE_URL}/api/candlesticks_range/SPY.US?period=week"
 ```
 
 ---
@@ -327,7 +336,7 @@ curl "http://ec2-16-163-141-166.ap-east-1.compute.amazonaws.com:8765/api/candles
 **示例**
 
 ```bash
-curl "http://ec2-16-163-141-166.ap-east-1.compute.amazonaws.com:8765/api/depth/700.HK"
+curl "${PUBLIC_BASE_URL}/api/depth/700.HK"
 ```
 
 ---
@@ -386,10 +395,10 @@ curl "http://ec2-16-163-141-166.ap-east-1.compute.amazonaws.com:8765/api/depth/7
 
 ```bash
 # 最近 200 笔成交
-curl "http://ec2-16-163-141-166.ap-east-1.compute.amazonaws.com:8765/api/trades/NVDA.US?count=200"
+curl "${PUBLIC_BASE_URL}/api/trades/NVDA.US?count=200"
 
 # 港股
-curl "http://ec2-16-163-141-166.ap-east-1.compute.amazonaws.com:8765/api/trades/700.HK?count=100"
+curl "${PUBLIC_BASE_URL}/api/trades/700.HK?count=100"
 ```
 
 ---
@@ -438,7 +447,7 @@ curl "http://ec2-16-163-141-166.ap-east-1.compute.amazonaws.com:8765/api/trades/
 **示例**
 
 ```bash
-curl "http://ec2-16-163-141-166.ap-east-1.compute.amazonaws.com:8765/api/intraday/NVDA.US"
+curl "${PUBLIC_BASE_URL}/api/intraday/NVDA.US"
 ```
 
 ---
@@ -464,7 +473,7 @@ curl "http://ec2-16-163-141-166.ap-east-1.compute.amazonaws.com:8765/api/intrada
 **示例**
 
 ```bash
-curl -X POST "http://ec2-16-163-141-166.ap-east-1.compute.amazonaws.com:8765/api/subscribe" \
+curl -X POST "${PUBLIC_BASE_URL}/api/subscribe" \
   -H "Content-Type: application/json" \
   -d '{"symbols": ["700.HK", "AAPL.US"]}'
 ```
@@ -492,7 +501,7 @@ curl -X POST "http://ec2-16-163-141-166.ap-east-1.compute.amazonaws.com:8765/api
 **示例**
 
 ```bash
-curl -X DELETE "http://ec2-16-163-141-166.ap-east-1.compute.amazonaws.com:8765/api/subscribe/700.HK"
+curl -X DELETE "${PUBLIC_BASE_URL}/api/subscribe/700.HK"
 ```
 
 ---
@@ -516,7 +525,7 @@ curl -X DELETE "http://ec2-16-163-141-166.ap-east-1.compute.amazonaws.com:8765/a
 **示例**
 
 ```bash
-curl "http://ec2-16-163-141-166.ap-east-1.compute.amazonaws.com:8765/api/fundamental?symbols=700.HK,AAPL.US"
+curl "${PUBLIC_BASE_URL}/api/fundamental?symbols=700.HK,AAPL.US"
 ```
 
 ---
@@ -575,7 +584,7 @@ curl "http://ec2-16-163-141-166.ap-east-1.compute.amazonaws.com:8765/api/fundame
 **示例**
 
 ```bash
-curl "http://ec2-16-163-141-166.ap-east-1.compute.amazonaws.com:8765/api/static?symbols=700.HK,AAPL.US"
+curl "${PUBLIC_BASE_URL}/api/static?symbols=700.HK,AAPL.US"
 ```
 
 ---
@@ -626,7 +635,7 @@ curl "http://ec2-16-163-141-166.ap-east-1.compute.amazonaws.com:8765/api/static?
 **示例**
 
 ```bash
-curl "http://ec2-16-163-141-166.ap-east-1.compute.amazonaws.com:8765/api/indexes?symbols=NVDA.US,AAPL.US"
+curl "${PUBLIC_BASE_URL}/api/indexes?symbols=NVDA.US,AAPL.US"
 ```
 
 ---
@@ -674,7 +683,7 @@ curl "http://ec2-16-163-141-166.ap-east-1.compute.amazonaws.com:8765/api/indexes
 **示例**
 
 ```bash
-curl "http://ec2-16-163-141-166.ap-east-1.compute.amazonaws.com:8765/api/capital/700.HK"
+curl "${PUBLIC_BASE_URL}/api/capital/700.HK"
 ```
 
 ---
@@ -752,10 +761,10 @@ curl "http://ec2-16-163-141-166.ap-east-1.compute.amazonaws.com:8765/api/capital
 
 ```bash
 # 全部货币
-curl "http://ec2-16-163-141-166.ap-east-1.compute.amazonaws.com:8765/api/assets/balance"
+curl "${PUBLIC_BASE_URL}/api/assets/balance"
 
 # 只看 USD
-curl "http://ec2-16-163-141-166.ap-east-1.compute.amazonaws.com:8765/api/assets/balance?currency=USD"
+curl "${PUBLIC_BASE_URL}/api/assets/balance?currency=USD"
 ```
 
 ---
@@ -817,10 +826,10 @@ curl "http://ec2-16-163-141-166.ap-east-1.compute.amazonaws.com:8765/api/assets/
 
 ```bash
 # 全部持仓
-curl "http://ec2-16-163-141-166.ap-east-1.compute.amazonaws.com:8765/api/assets/positions"
+curl "${PUBLIC_BASE_URL}/api/assets/positions"
 
 # 查询指定持仓
-curl "http://ec2-16-163-141-166.ap-east-1.compute.amazonaws.com:8765/api/assets/positions?symbols=AAPL.US,MSFT.US"
+curl "${PUBLIC_BASE_URL}/api/assets/positions?symbols=AAPL.US,MSFT.US"
 ```
 
 ---
@@ -864,14 +873,14 @@ curl "http://ec2-16-163-141-166.ap-east-1.compute.amazonaws.com:8765/api/assets/
 **示例**
 
 ```bash
-curl "http://ec2-16-163-141-166.ap-east-1.compute.amazonaws.com:8765/api/assets/fund_positions"
+curl "${PUBLIC_BASE_URL}/api/assets/fund_positions"
 ```
 
 ---
 
 ## 自选股接口
 
-自选股持久化存储于服务器本地文件（`~/.stockmonito_watchlist.json`）。
+自选股持久化存储于服务器本地文件（`~/.jiang_equity_request_watchlist.json`）。
 
 ### 获取自选股
 
@@ -886,7 +895,7 @@ curl "http://ec2-16-163-141-166.ap-east-1.compute.amazonaws.com:8765/api/assets/
 **示例**
 
 ```bash
-curl "http://ec2-16-163-141-166.ap-east-1.compute.amazonaws.com:8765/api/watchlist"
+curl "${PUBLIC_BASE_URL}/api/watchlist"
 ```
 
 ---
@@ -910,7 +919,7 @@ curl "http://ec2-16-163-141-166.ap-east-1.compute.amazonaws.com:8765/api/watchli
 **示例**
 
 ```bash
-curl -X POST "http://ec2-16-163-141-166.ap-east-1.compute.amazonaws.com:8765/api/watchlist" \
+curl -X POST "${PUBLIC_BASE_URL}/api/watchlist" \
   -H "Content-Type: application/json" \
   -d '{"symbol": "TSLA.US"}'
 ```
@@ -942,7 +951,7 @@ curl -X POST "http://ec2-16-163-141-166.ap-east-1.compute.amazonaws.com:8765/api
 **示例**
 
 ```bash
-curl -X DELETE "http://ec2-16-163-141-166.ap-east-1.compute.amazonaws.com:8765/api/watchlist/TSLA.US"
+curl -X DELETE "${PUBLIC_BASE_URL}/api/watchlist/TSLA.US"
 ```
 
 ---
@@ -952,7 +961,7 @@ curl -X DELETE "http://ec2-16-163-141-166.ap-east-1.compute.amazonaws.com:8765/a
 ### 连接地址
 
 ```
-ws://ec2-16-163-141-166.ap-east-1.compute.amazonaws.com:8765/ws/quotes
+${WS_BASE_URL}/ws/quotes
 ```
 
 ### 客户端 → 服务端
@@ -1076,7 +1085,7 @@ ws://ec2-16-163-141-166.ap-east-1.compute.amazonaws.com:8765/ws/quotes
 
 ```bash
 npm install -g wscat
-wscat -c ws://ec2-16-163-141-166.ap-east-1.compute.amazonaws.com:8765/ws/quotes
+wscat -c ${WS_BASE_URL}/ws/quotes
 
 # 连接后发送：
 {"action":"subscribe","symbols":["700.HK","AAPL.US"]}
@@ -1136,7 +1145,7 @@ wscat -c ws://ec2-16-163-141-166.ap-east-1.compute.amazonaws.com:8765/ws/quotes
 **示例**
 
 ```bash
-curl http://ec2-16-163-141-166.ap-east-1.compute.amazonaws.com:8765/api/market/sessions
+curl ${PUBLIC_BASE_URL}/api/market/sessions
 ```
 
 ---
@@ -1189,13 +1198,13 @@ curl http://ec2-16-163-141-166.ap-east-1.compute.amazonaws.com:8765/api/market/s
 
 ```bash
 # 查询港股近 30 天交易日（默认）
-curl "http://ec2-16-163-141-166.ap-east-1.compute.amazonaws.com:8765/api/market/trading_days"
+curl "${PUBLIC_BASE_URL}/api/market/trading_days"
 
 # 查询美股 2025 年 1 月交易日
-curl "http://ec2-16-163-141-166.ap-east-1.compute.amazonaws.com:8765/api/market/trading_days?market=US&begin=2025-01-01&end=2025-01-31"
+curl "${PUBLIC_BASE_URL}/api/market/trading_days?market=US&begin=2025-01-01&end=2025-01-31"
 
 # 查询 A 股交易日
-curl "http://ec2-16-163-141-166.ap-east-1.compute.amazonaws.com:8765/api/market/trading_days?market=CN&begin=2025-02-01&end=2025-02-28"
+curl "${PUBLIC_BASE_URL}/api/market/trading_days?market=CN&begin=2025-02-01&end=2025-02-28"
 ```
 
 ---
@@ -1207,7 +1216,7 @@ curl "http://ec2-16-163-141-166.ap-east-1.compute.amazonaws.com:8765/api/market/
 | `200` | 成功 |
 | `400` | 请求参数有误（如 `symbols` 为空） |
 | `404` | 资源不存在（如自选股中无此标的） |
-| `500` | 服务器内部错误（LongPort SDK 调用失败，`detail` 字段含错误详情） |
+| `500` | 服务器内部错误（详细错误写入服务端日志，客户端返回通用信息） |
 
 ---
 

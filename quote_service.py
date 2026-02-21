@@ -474,27 +474,28 @@ class QuoteService:
     async def get_trading_days(
         self,
         market: str,
-        begin: "datetime.date",
-        end: "datetime.date",
+        begin,
+        end,
     ) -> dict:
         """
         返回指定市场、日期范围内的交易日和半日市信息。
         market: HK / US / CN / SG / Crypto
         """
         import datetime as _dt
+        market_key = (market or "HK").upper()
         market_map = {
-            "HK":     Market.HK,
-            "US":     Market.US,
-            "CN":     Market.CN,
-            "SG":     Market.SG,
-            "Crypto": Market.Crypto,
+            "HK": Market.HK,
+            "US": Market.US,
+            "CN": Market.CN,
+            "SG": Market.SG,
+            "CRYPTO": Market.Crypto,
         }
-        mkt = market_map.get(market.upper() if market else "", Market.HK)
+        mkt = market_map.get(market_key, Market.HK)
         resp = await self._ctx.trading_days(mkt, begin, end)
         def _fmt(d) -> str:
             return d.strftime("%Y-%m-%d") if hasattr(d, "strftime") else str(d)
         return {
-            "market":             market.upper(),
+            "market":             market_key,
             "begin":              _fmt(begin),
             "end":                _fmt(end),
             "trading_days":       [_fmt(d) for d in getattr(resp, "trading_days", [])],

@@ -1,5 +1,5 @@
 """
-Stockmonito Python 后端入口
+JiangEquityRequestAPI Python 后端入口
 运行: python main.py  (或由 Swift PythonBridge 启动)
 
 启动前请在 config.py 中填写 LongPort API 凭证。
@@ -60,22 +60,22 @@ async def lifespan(app: FastAPI):
     app.state.quote_service = svc
     app.state.trade_service = trade_svc
     app.state.ws_manager = ws_manager
-    logger.info("Stockmonito backend started.")
+    logger.info("JiangEquityRequestAPI backend started.")
 
     yield  # 应用运行阶段
 
     # --- shutdown ---
-    logger.info("Stockmonito backend shutting down.")
+    logger.info("JiangEquityRequestAPI backend shutting down.")
 
 
 # --------------------------------------------------------------------------- #
 # FastAPI App
 # --------------------------------------------------------------------------- #
-app = FastAPI(title="Stockmonito Backend", version="1.0.0", lifespan=lifespan)
+app = FastAPI(title="JiangEquityRequestAPI Backend", version="1.0.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=config.CORS_ALLOW_ORIGINS,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -92,11 +92,14 @@ app.include_router(market_router.router)
 @app.get("/health")
 async def health():
     svc = app.state.quote_service
-    return {
+    resp = {
         "status": "ok",
         "subscribed": svc.subscribed_symbols,
         "ws_clients": app.state.ws_manager.client_count,
     }
+    if config.PUBLIC_BASE_URL:
+        resp["public_base_url"] = config.PUBLIC_BASE_URL
+    return resp
 
 
 # --------------------------------------------------------------------------- #

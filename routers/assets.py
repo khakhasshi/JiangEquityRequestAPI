@@ -8,9 +8,12 @@
   GET /api/assets/positions?symbols=AAPL.US,700.HK  按标的筛选
   GET /api/assets/fund_positions       基金持仓
 """
+import logging
+
 from fastapi import APIRouter, HTTPException, Request
 
 router = APIRouter(prefix="/api/assets", tags=["assets"])
+logger = logging.getLogger(__name__)
 
 
 def _svc(request: Request):
@@ -34,7 +37,8 @@ async def get_account_balance(request: Request, currency: str | None = None):
     try:
         return await _svc(request).get_account_balance(currency=currency)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.exception("get_account_balance failed: %s", e)
+        raise HTTPException(status_code=500, detail="internal server error")
 
 
 @router.get("/positions")
@@ -51,7 +55,8 @@ async def get_stock_positions(request: Request, symbols: str | None = None):
     try:
         return await _svc(request).get_stock_positions(symbol_list)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.exception("get_stock_positions failed: %s", e)
+        raise HTTPException(status_code=500, detail="internal server error")
 
 
 @router.get("/fund_positions")
@@ -65,4 +70,5 @@ async def get_fund_positions(request: Request, symbols: str | None = None):
     try:
         return await _svc(request).get_fund_positions(symbol_list)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.exception("get_fund_positions failed: %s", e)
+        raise HTTPException(status_code=500, detail="internal server error")

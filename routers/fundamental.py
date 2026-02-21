@@ -7,9 +7,12 @@
   GET /api/indexes?symbols=700.HK,AAPL.US       估值/涨跌指标（PE/PB/各周期涨跌幅）
   GET /api/capital/{symbol}                      资金分布（大/中/小单 流入流出）
 """
+import logging
+
 from fastapi import APIRouter, HTTPException, Request
 
 router = APIRouter(prefix="/api", tags=["fundamental"])
+logger = logging.getLogger(__name__)
 
 
 def _svc(request: Request):
@@ -38,7 +41,8 @@ async def get_fundamental(symbols: str, request: Request):
             result.append(merged)
         return result
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.exception("get_fundamental failed: %s", e)
+        raise HTTPException(status_code=500, detail="internal server error")
 
 
 @router.get("/static")
@@ -54,7 +58,8 @@ async def get_static_info(symbols: str, request: Request):
     try:
         return await svc.get_static_info(symbol_list)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.exception("get_static_info failed: %s", e)
+        raise HTTPException(status_code=500, detail="internal server error")
 
 
 @router.get("/indexes")
@@ -70,7 +75,8 @@ async def get_calc_indexes(symbols: str, request: Request):
     try:
         return await svc.get_calc_indexes(symbol_list)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.exception("get_calc_indexes failed: %s", e)
+        raise HTTPException(status_code=500, detail="internal server error")
 
 
 @router.get("/capital/{symbol:path}")
@@ -83,4 +89,5 @@ async def get_capital_distribution(symbol: str, request: Request):
     try:
         return await svc.get_capital_distribution(symbol)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.exception("get_capital_distribution failed: %s", e)
+        raise HTTPException(status_code=500, detail="internal server error")
